@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление Заметками</title>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f0f8ff;
+      color: #333;
+      font-family: 'Arial', sans-serif;
+    }
+    .container {
+      max-width: 1200px;
+      margin-top: 30px;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+    }
+    .form-column {
+      flex: 1;
+      background-color: #e6f7ff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .notes-column {
+      flex: 2;
+      padding: 20px;
+    }
+    .note-card {
+      background-color: #d0e8ff;
+      border: 1px solid #a4c8ff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .note-card h5 {
+      color: #005c99;
+    }
+    .note-card p {
+      font-size: 1.1em;
+    }
+    .form-control, .btn-custom {
+      border-radius: 5px;
+    }
+    .btn-custom {
+      background-color: #80caff;
+      color: white;
+      border: none;
+    }
+    .btn-custom:hover {
+      background-color: #66b2ff;
+    }
+    .btn-danger {
+      background-color: #ff6f61;
+      color: white;
+    }
+    .btn-danger:hover {
+      background-color: #ff4f40;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <h1 class="text-center mb-4">Менеджер Заметок</h1>
+
+    <div class="row">
+      <!-- Форма добавления заметок -->
+      <div class="form-column">
+        <form @submit.prevent="addNote">
+          <h4>Добавить новую заметку</h4>
+          <div class="mb-3">
+            <label for="noteTitle" class="form-label">Заголовок заметки</label>
+            <input type="text" id="noteTitle" class="form-control" v-model="newNote.title" required placeholder="Введите заголовок">
+          </div>
+          <div class="mb-3">
+            <label for="noteContent" class="form-label">Содержание заметки</label>
+            <textarea id="noteContent" class="form-control" v-model="newNote.content" required placeholder="Введите содержание"></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="notePriority" class="form-label">Приоритет</label>
+            <select id="notePriority" class="form-control" v-model="newNote.priority">
+              <option value="Низкий">Низкий</option>
+              <option value="Средний">Средний</option>
+              <option value="Высокий">Высокий</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-custom">Добавить заметку</button>
+          <button type="button" class="btn btn-danger ms-2" @click="clearStorage">Очистить заметки</button>
+        </form>
+      </div>
+
+      <!-- Список заметок -->
+      <div class="notes-column">
+        <h4>Ваши заметки</h4>
+        <div v-if="notes.length === 0" class="text-center mt-4">Нет заметок. Добавьте что-нибудь!</div>
+
+        <div v-for="(note, index) in notes" :key="index" class="note-card">
+          <h5>{{ note.title }}</h5>
+          <p><strong>Содержание:</strong> {{ note.content }}</p>
+          <p><strong>Приоритет:</strong> {{ note.priority }}</p>
+          <div>
+            <button class="btn btn-success btn-sm" @click="editNote(index)">Редактировать</button>
+            <button class="btn btn-danger btn-sm" @click="deleteNote(index)">Удалить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    new Vue({
+      el: '#app',
+      data: {
+        newNote: { title: '', content: '', priority: 'Низкий' },
+        notes: [],
+        editingIndex: null
+      },
+      mounted() {
+        if (localStorage.getItem('notes')) {
+          this.notes = JSON.parse(localStorage.getItem('notes'));
+        }
+      },
+      methods: {
+        addNote() {
+          if (this.editingIndex !== null) {
+            this.notes[this.editingIndex] = { ...this.newNote };
+            this.editingIndex = null;
+          } else {
+            this.notes.push({ ...this.newNote });
+          }
+          this.saveNotes();
+          this.newNote = { title: '', content: '', priority: 'Низкий' };
+        },
+        editNote(index) {
+          this.newNote = { ...this.notes[index] };
+          this.editingIndex = index;
+        },
+        deleteNote(index) {
+          this.notes.splice(index, 1);
+          this.saveNotes();
+        },
+        clearStorage() {
+          this.notes = [];
+          localStorage.removeItem('notes');
+        },
+        saveNotes() {
+          localStorage.setItem('notes', JSON.stringify(this.notes));
+        }
+      }
+    });
+  </script>
+</body>
+</html>
