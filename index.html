@@ -89,6 +89,22 @@
               <option value="Высокий">Высокий</option>
             </select>
           </div>
+          <div class="mb-3">
+            <label class="form-label">Теги</label><br>
+            <div>
+              <label><input type="checkbox" value="Работа" v-model="newNote.tags"> Работа</label>
+              <label><input type="checkbox" value="Дом" v-model="newNote.tags"> Дом</label>
+              <label><input type="checkbox" value="Учеба" v-model="newNote.tags"> Учеба</label>
+              <label><input type="checkbox" value="Проекты" v-model="newNote.tags"> Проекты</label>
+              <label><input type="checkbox" value="Саморазвитие" v-model="newNote.tags"> Саморазвитие</label>
+              <label><input type="checkbox" value="Другое" v-model="newNote.tags"> Другое</label>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Закрепить</label><br>
+            <label><input type="radio" value="Закрепить" v-model="newNote.pinned"> Закрепить</label>
+            <label class="ms-2"><input type="radio" value="Не закреплять" v-model="newNote.pinned" checked> Не закреплять</label>
+          </div>
           <button type="submit" class="btn btn-custom">Добавить заметку</button>
           <button type="button" class="btn btn-danger ms-2" @click="clearStorage">Очистить заметки</button>
         </form>
@@ -98,10 +114,12 @@
         <h4>Ваши заметки</h4>
         <div v-if="notes.length === 0" class="text-center mt-4">Нет заметок. Добавьте что-нибудь!</div>
 
-        <div v-for="(note, index) in notes" :key="index" class="note-card">
+        <div v-for="(note, index) in sortedNotes" :key="index" class="note-card">
           <h5>{{ note.title }}</h5>
           <p><strong>Содержание:</strong> {{ note.content }}</p>
           <p><strong>Приоритет:</strong> {{ note.priority }}</p>
+          <p><strong>Теги:</strong> {{ note.tags.join(', ') }}</p>
+          <p><strong>Закрепить:</strong> {{ note.pinned }}</p>
           <div>
             <button class="btn btn-success btn-sm" @click="editNote(index)">Редактировать</button>
             <button class="btn btn-danger btn-sm" @click="deleteNote(index)">Удалить</button>
@@ -115,9 +133,14 @@
     new Vue({
       el: '#app',
       data: {
-        newNote: { title: '', content: '', priority: 'Низкий' },
+        newNote: { title: '', content: '', priority: 'Низкий', tags: [], pinned: 'Не закреплять' },
         notes: [],
         editingIndex: null
+      },
+      computed: {
+        sortedNotes() {
+          return this.notes.sort((a, b) => b.pinned === 'Закрепить' - (a.pinned === 'Закрепить'));
+        }
       },
       mounted() {
         if (localStorage.getItem('notes')) {
@@ -133,7 +156,7 @@
             this.notes.push({ ...this.newNote });
           }
           this.saveNotes();
-          this.newNote = { title: '', content: '', priority: 'Низкий' };
+          this.newNote = { title: '', content: '', priority: 'Низкий', tags: [], pinned: 'Не закреплять' };
         },
         editNote(index) {
           this.newNote = { ...this.notes[index] };
